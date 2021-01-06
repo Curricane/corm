@@ -4,19 +4,26 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/Curricane/corm/dialect"
 	"github.com/Curricane/corm/log"
+	"github.com/Curricane/corm/schema"
 )
 
 // Session 与数据库交互
 type Session struct {
-	db      *sql.DB
-	sql     strings.Builder // sql语句
-	sqlVars []interface{}   // 存放占位符对应的值
+	db       *sql.DB
+	dialect  dialect.Dialect
+	refTable *schema.Schema
+	sql      strings.Builder // sql语句
+	sqlVars  []interface{}   // 存放占位符对应的值
 }
 
 // New creates a instance of Session
-func New(db *sql.DB) *Session {
-	return &Session{db: db}
+func New(db *sql.DB, dialect dialect.Dialect) *Session {
+	return &Session{
+		db:      db,
+		dialect: dialect,
+	}
 }
 
 // Clear initialize the state of a session
