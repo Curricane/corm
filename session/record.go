@@ -12,6 +12,7 @@ import (
 func (s *Session) Insert(values ...interface{}) (int64, error) {
 	recordValues := make([]interface{}, 0)
 	for _, value := range values {
+		s.CallMethod(BeforeInsert, value)
 		table := s.Model(value).RefTable()
 		s.clause.Set(clause.INSERT, table.Name, table.FieldNames)
 		recordValues = append(recordValues, table.RecordValues(value))
@@ -23,13 +24,14 @@ func (s *Session) Insert(values ...interface{}) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-
+	s.CallMethod(AfterInsert, nil)
 	return result.RowsAffected()
 }
 
 // Find gets all eligibel records
 // 传入一个切片指针，查询的结果保存在切片中
 func (s *Session) Find(values interface{}) error {
+	s.CallMethod(BeforeQuery, nil)
 	// 通过反射，获取Slice数据类型
 	destSlice := reflect.Indirect(reflect.ValueOf(values))
 	destType := destSlice.Type().Elem()
@@ -58,6 +60,7 @@ func (s *Session) Find(values interface{}) error {
 			return err
 		}
 
+		s.CallMethod(AfterQuery, dest.Addr().Interface())
 		// 将 dest 添加到切片 destSlice 中
 		destSlice.Set(reflect.Append(destSlice, dest))
 	}
@@ -68,6 +71,7 @@ func (s *Session) Find(values interface{}) error {
 // support map[string]interface{}
 // also support kv list: "Name", "Tom", "Age", 18, ....
 func (s *Session) Update(kv ...interface{}) (int64, error) {
+	s.CallMethod(BeforeUpdate, nil)
 	m, ok := kv[0].(map[string]interface{})
 	if !ok {
 		m = make(map[string]interface{})
@@ -82,17 +86,20 @@ func (s *Session) Update(kv ...interface{}) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	s.CallMethod(AfterUpdate, nil)
 	return result.RowsAffected()
 }
 
 // Delete records with where clause
 func (s *Session) Delete() (int64, error) {
+	s.CallMethod(BeforeDelete, nil)
 	s.clause.Set(clause.DELETE, s.RefTable().Name)
 	sql, vars := s.clause.Build(clause.DELETE, clause.WHERE)
 	result, err := s.Raw(sql, vars...).Exec()
 	if err != nil {
 		return 0, err
 	}
+	s.CallMethod(AfterDelete, nil)
 	return result.RowsAffected()
 }
 
