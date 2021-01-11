@@ -14,6 +14,7 @@ import (
 type Session struct {
 	db       *sql.DB
 	dialect  dialect.Dialect
+	tx       *sql.Tx
 	refTable *schema.Schema // 解析对象后的结构，解析操作是比较耗时的，因此将解析的结果保存在成员变量 refTable
 	clause   clause.Clause
 	sql      strings.Builder // sql语句
@@ -35,8 +36,21 @@ func (s *Session) Clear() {
 	s.clause = clause.Clause{}
 }
 
+// CommonDB is a minimal function set of db
+type CommonDB interface {
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+var _ CommonDB = (*sql.DB)(nil)
+var _ CommonDB = (*sql.Tx)(nil)
+
 // DB returns *sql.DB
-func (s *Session) DB() *sql.DB {
+func (s *Session) DB() CommonDB {
+	if s.tx != nil {
+		return s.tx
+	}
 	return s.db
 }
 
