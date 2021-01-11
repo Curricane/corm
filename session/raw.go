@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/Curricane/corm/clause"
 	"github.com/Curricane/corm/dialect"
 	"github.com/Curricane/corm/log"
 	"github.com/Curricane/corm/schema"
@@ -14,6 +15,7 @@ type Session struct {
 	db       *sql.DB
 	dialect  dialect.Dialect
 	refTable *schema.Schema
+	clause   clause.Clause
 	sql      strings.Builder // sql语句
 	sqlVars  []interface{}   // 存放占位符对应的值
 }
@@ -30,6 +32,7 @@ func New(db *sql.DB, dialect dialect.Dialect) *Session {
 func (s *Session) Clear() {
 	s.sql.Reset()
 	s.sqlVars = nil
+	s.clause = clause.Clause{}
 }
 
 // DB returns *sql.DB
