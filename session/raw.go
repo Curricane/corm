@@ -14,7 +14,7 @@ import (
 type Session struct {
 	db       *sql.DB
 	dialect  dialect.Dialect
-	refTable *schema.Schema
+	refTable *schema.Schema // 解析对象后的结构，解析操作是比较耗时的，因此将解析的结果保存在成员变量 refTable
 	clause   clause.Clause
 	sql      strings.Builder // sql语句
 	sqlVars  []interface{}   // 存放占位符对应的值
